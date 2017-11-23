@@ -62,25 +62,16 @@ class Server : public QObject
     Q_OBJECT
 
 public:
-    //explicit Server(QWidget *parent = Q_NULLPTR);
+    explicit Server(QObject *parent = Q_NULLPTR);
 
 private slots:
     void sessionOpened();
-    //void sendFortune();
+    void sendHello();
 
 private:
     QTcpServer *tcpServer;
     QStringList fortunes;
     QNetworkSession *networkSession;
-};
-//! [0]
-//!
-//!
-
-class Runner : public QObject {
-Q_OBJECT
-public slots:
-void run() ;
 };
 
 #endif

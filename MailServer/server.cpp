@@ -5,17 +5,11 @@
 
 #include "server.h"
 
-
-/* Server::Server(QCoreApplication *parent)
-    : QDialog(parent)
-    , statusLabel(new QLabel)
+Server::Server(QObject *parent)
+    : QObject(parent)
     , tcpServer(Q_NULLPTR)
     , networkSession(0)
-/
-{ */
-    /* setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    statusLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-
+{
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         // Get saved network configuration
@@ -31,147 +25,70 @@
             config = manager.defaultConfiguration();
         }
 
+
         networkSession = new QNetworkSession(config, this);
         connect(networkSession, &QNetworkSession::opened, this, &Server::sessionOpened);
 
-        statusLabel->setText(tr("Opening network session."));
         networkSession->open();
-    } else {
+    }
+    else {
         sessionOpened();
     }
 
-    //! [2]
-        fortunes << tr("You've been leading a dog's life. Stay off the furniture.")
-                 << tr("You've got to think about tomorrow.")
-                 << tr("You will be surprised by a loud noise.")
-                 << tr("You will feel hungry again in another hour.")
-                 << tr("You might have mail.")
-                 << tr("You cannot kill time without injuring eternity.")
-                 << tr("Computers are not intelligent. They only think they are.");
-    //! [2]
-        QPushButton *quitButton = new QPushButton(tr("Quit"));
-        quitButton->setAutoDefault(false);
-        connect(quitButton, &QAbstractButton::clicked, this, &QWidget::close);
-    //! [3]
-        connect(tcpServer, &QTcpServer::newConnection, this, &Server::sendFortune);
-    //! [3]
+    connect(tcpServer, &QTcpServer::newConnection, this, &Server::sendHello);
 
-        QHBoxLayout *buttonLayout = new QHBoxLayout;
-        buttonLayout->addStretch(1);
-        buttonLayout->addWidget(quitButton);
-        buttonLayout->addStretch(1);
-
-        QVBoxLayout *mainLayout = Q_NULLPTR;
-        if (QGuiApplication::styleHints()->showIsFullScreen() || QGuiApplication::styleHints()->showIsMaximized()) {
-            QVBoxLayout *outerVerticalLayout = new QVBoxLayout(this);
-            outerVerticalLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Ignored, QSizePolicy::MinimumExpanding));
-            QHBoxLayout *outerHorizontalLayout = new QHBoxLayout;
-            outerHorizontalLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::Ignored));
-            QGroupBox *groupBox = new QGroupBox(QGuiApplication::applicationDisplayName());
-            mainLayout = new QVBoxLayout(groupBox);
-            outerHorizontalLayout->addWidget(groupBox);
-            outerHorizontalLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::Ignored));
-            outerVerticalLayout->addLayout(outerHorizontalLayout);
-            outerVerticalLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Ignored, QSizePolicy::MinimumExpanding));
-        } else {
-            mainLayout = new QVBoxLayout(this);
-        }
-
-        mainLayout->addWidget(statusLabel);
-        mainLayout->addLayout(buttonLayout);
-
-        setWindowTitle(QGuiApplication::applicationDisplayName());
-*
-} */
-
+    fortunes << tr("You've been leading a dog's life. Stay off the furniture.")
+             << tr("You've got to think about tomorrow.")
+             << tr("You will be surprised by a loud noise.")
+             << tr("You will feel hungry again in another hour.")
+             << tr("You might have mail.")
+             << tr("You cannot kill time without injuring eternity.")
+             << tr("Computers are not intelligent. They only think they are.");
+}
 
 void Server::sessionOpened()
 {
     std::cout << "Test" << std::endl;
+    QHostAddress hostname("127.0.0.1");
+    qint16 port = 12345;
 
     tcpServer = new QTcpServer(this);
-    if (!tcpServer->listen()) {
+    if (!tcpServer->listen(hostname, port)) {
         //std::cout << tcpServer->errorString() << endl;
         //close();
         return;
     }
 
     std::cout << tcpServer->serverPort() << std::endl;
-
-    //QCoreApplication::quit();
-    // Save the used configuration
-    /* if (networkSession) {
-        QNetworkConfiguration config = networkSession->configuration();
-        QString id;
-        if (config.type() == QNetworkConfiguration::UserChoice)
-            id = networkSession->sessionProperty(QLatin1String("UserChoiceConfiguration")).toString();
-        else
-            id = config.identifier();
-
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
-        settings.beginGroup(QLatin1String("QtNetwork"));
-        settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
-        settings.endGroup();
-    }
-
-//! [0] //! [1]
-    tcpServer = new QTcpServer(this);
-    if (!tcpServer->listen()) {
-        QMessageBox::critical(this, tr("Fortune Server"),
-                              tr("Unable to start the server: %1.")
-                              .arg(tcpServer->errorString()));
-        close();
-        return;
-    }
-//! [0]
-    QString ipAddress;
-    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    // use the first non-localhost IPv4 address
-     for (int i = 0; i < ipAddressesList.size(); ++i) {
-        if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
-            ipAddressesList.at(i).toIPv4Address()) {
-            ipAddress = ipAddressesList.at(i).toString();
-            break;
-        }
-    }
-    // if we did not find one, use IPv4 localhost
-    if (ipAddress.isEmpty())
-        ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
-
-    statusLabel->setText(tr("The server is running on\n\nIP: %1\nport: %2\n\n"
-                            "Run the Fortune Client example now.")
-                         .arg(ipAddress).arg(tcpServer->serverPort()));
-
-//! [1]
-//! */
 }
 
-/*
-
-//! [4]
-void Server::sendFortune()
+void Server::sendHello()
 {
-//! [5]
-    QByteArray block;
+    /* QByteArray block;
+    block.clear();
     QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
+    out.setVersion(QDataStream::Qt_5_9);
 
     out << fortunes.at(qrand() % fortunes.size());
-//! [4] //! [7]
+    out << "";
+    QString t =  fortunes.at(qrand() % fortunes.size());
+    QString t1 = "Hello";
+    std::string t2 = t.toLocal8Bit().constData();
+    const char *t3 = block.data();
+    const char *t4 = "Hey";
+
+
+    std::cout << "Sending data" << t3 << "and " << t4 << std::endl;
+
+    */
 
     QTcpSocket *clientConnection = tcpServer->nextPendingConnection();
     connect(clientConnection, &QAbstractSocket::disconnected,
             clientConnection, &QObject::deleteLater);
-//! [7] //! [8]
 
-    clientConnection->write(block);
+
+
+    //clientConnection->write(block);
+    clientConnection->write("Hello?");
     clientConnection->disconnectFromHost();
-//! [5]
-}
-//! [8]
-*/
-
-void Runner::run() {
-//do stuff
-QCoreApplication::exit(0);
 }
