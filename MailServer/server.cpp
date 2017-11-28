@@ -14,9 +14,9 @@ Server::Server(QObject *parent)
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         // Get saved network configuration
         QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
-        settings.beginGroup(QLatin1String("QtNetwork"));
+        //settings.beginGroup(QLatin1String("QtNetwork"));
         const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
-        settings.endGroup();
+        //settings.endGroup();
 
         // If the saved network configuration is not currently discovered use the system default
         QNetworkConfiguration config = manager.configurationFromIdentifier(id);
@@ -36,14 +36,6 @@ Server::Server(QObject *parent)
     }
 
     connect(tcpServer, &QTcpServer::newConnection, this, &Server::sendHello);
-
-    fortunes << tr("You've been leading a dog's life. Stay off the furniture.")
-             << tr("You've got to think about tomorrow.")
-             << tr("You will be surprised by a loud noise.")
-             << tr("You will feel hungry again in another hour.")
-             << tr("You might have mail.")
-             << tr("You cannot kill time without injuring eternity.")
-             << tr("Computers are not intelligent. They only think they are.");
 }
 
 void Server::sessionOpened()
@@ -54,8 +46,6 @@ void Server::sessionOpened()
 
     tcpServer = new QTcpServer(this);
     if (!tcpServer->listen(hostname, port)) {
-        //std::cout << tcpServer->errorString() << endl;
-        //close();
         return;
     }
 
@@ -64,31 +54,13 @@ void Server::sessionOpened()
 
 void Server::sendHello()
 {
-    /* QByteArray block;
-    block.clear();
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_9);
+    QTextCodec *codec = QTextCodec::codecForName("Utf8");
 
-    out << fortunes.at(qrand() % fortunes.size());
-    out << "";
-    QString t =  fortunes.at(qrand() % fortunes.size());
-    QString t1 = "Hello";
-    std::string t2 = t.toLocal8Bit().constData();
-    const char *t3 = block.data();
-    const char *t4 = "Hey";
-
-
-    std::cout << "Sending data" << t3 << "and " << t4 << std::endl;
-
-    */
-
+    QByteArray block = codec->fromUnicode("Hello!");
     QTcpSocket *clientConnection = tcpServer->nextPendingConnection();
     connect(clientConnection, &QAbstractSocket::disconnected,
             clientConnection, &QObject::deleteLater);
 
-
-
-    //clientConnection->write(block);
-    clientConnection->write("Hello?");
+    clientConnection->write(block);
     clientConnection->disconnectFromHost();
 }

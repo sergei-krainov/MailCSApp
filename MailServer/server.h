@@ -70,7 +70,6 @@ private slots:
 
 private:
     QTcpServer *tcpServer;
-    QStringList fortunes;
     QNetworkSession *networkSession;
 };
 
